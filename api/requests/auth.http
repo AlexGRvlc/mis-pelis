@@ -1,0 +1,42 @@
+### Configuración de Variables Globales
+@baseUrl = http://localhost:3001/api
+
+### 1. Registrar un nuevo usuario (Caso Exitoso - 201 Created)
+# @name login
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Ada Lovelace",
+  "email": "ada@test.com",
+  "password": "12345678"
+}
+
+### 2. Iniciar Sesión (Caso Exitoso - 200 OK)
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ada@test.com",
+  "password": "12345678"
+}
+
+### 3. Obtener Usuario Autenticado (Caso Exitoso - 200 OK)
+# Usa el token JWT devuelto automáticamente por la petición de login de arriba
+@authToken = {{login.response.body.token}}
+
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authToken}}
+
+
+### 4. Registro Duplicado (Caso Fallido - 409 Conflict)
+# Intentamos registrar exactamente el mismo email para forzar el error 409
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Ada Lovelace",
+  "email": "ada@test.com",
+  "password": "12345678"
+}

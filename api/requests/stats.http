@@ -1,0 +1,25 @@
+### Configuración de Variables Globales
+@baseUrl = http://localhost:3001/api
+
+### 0. Login Automático para Obtener Token
+# @name loginStats
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ada@test.com",
+  "password": "12345678"
+}
+
+### Extraer Token JWT
+@authToken = {{loginStats.response.body.token}}
+
+
+### 1. Obtener el Overview Agregado (Petición Principal del Dashboard)
+GET {{baseUrl}}/stats/overview
+Authorization: Bearer {{authToken}}
+
+
+### 2. Obtener Resumen por Separado (Conteo de estados)
+GET {{baseUrl}}/stats/summary
+Authorization: Bearer {{authToken}}

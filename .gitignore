@@ -1,0 +1,26 @@
+# .gitignore — raíz del monorepo
+
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Variables de entorno — NUNCA al repo
+.env
+**/.env
+.env.local
+.env.production
+
+# Builds
+client/dist/
+api/dist/
+
+# Prisma
+api/prisma/migrations/migration_lock.toml
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

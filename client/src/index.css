@@ -1,0 +1,111 @@
+/* client/src/index.css */
+
+/* ── 1. IMPORTACIÓN DE FUENTES GOOGLE ── */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+/* ── 2. MOTOR CORE DE TAILWIND V4 ── */
+@import "tailwindcss";
+
+/* ── 3. CONFIGURACIÓN DEL TEMA (Sustituye a tailwind.config.js) ── */
+@theme {
+  /* Paleta principal de Mis Pelis */
+  --color-brand-50:  #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-900: #431407;
+
+  /* Colores de interfaz (Cine) */
+  --color-surface:          #0f0f0f;
+  --color-surface-card:     #1a1a1a;
+  --color-surface-elevated: #242424;
+  --color-surface-border:   #2e2e2e;
+
+  /* Tipografías */
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+
+  /* Breakpoint extra para bottom nav → top nav (768px) */
+  --breakpoint-nav: 48rem;
+
+  /* ── 💡 ANIMACIÓN DE FORMA CORRECTA EN V4 ── */
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  --animate-slide-up: slide-up 0.25s ease-out;
+}
+
+/* ── 4. ESTILOS BASE (Nativos de HTML) ── */
+@layer base {
+  html {
+    @apply bg-surface text-white antialiased;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply font-body;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Scrollbar personalizada — solo escritorio */
+  @media (min-width: 768px) {
+    ::-webkit-scrollbar       { width: 6px; }
+    ::-webkit-scrollbar-track { @apply bg-surface; }
+    ::-webkit-scrollbar-thumb { @apply bg-surface-border rounded-full; }
+    ::-webkit-scrollbar-thumb:hover { @apply bg-brand-500; }
+  }
+}
+
+/* ── 5. CLASES DE COMPONENTES DEL PROYECTO ── */
+
+/* Carrusel horizontal con scroll táctil */
+.carousel-scroll {
+  @apply flex gap-3 overflow-x-auto pb-3;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;          /* Firefox */
+}
+.carousel-scroll::-webkit-scrollbar { display: none; }
+
+.carousel-item {
+  scroll-snap-align: start;
+  @apply flex-none;
+}
+
+/* Tarjeta base de película */
+.movie-card {
+  @apply relative rounded-xl overflow-hidden bg-surface-card
+         transition-transform duration-200 cursor-pointer;
+}
+.movie-card:hover {
+  @apply scale-105;
+}
+
+/* Botón primario */
+.btn-primary {
+  @apply bg-brand-500 hover:bg-brand-600 text-white font-body
+         font-semibold px-5 py-2.5 rounded-xl transition-colors
+         duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Botón secundario / fantasma */
+.btn-ghost {
+  @apply border border-surface-border hover:border-brand-500
+         text-white/70 hover:text-white font-body font-medium
+         px-5 py-2.5 rounded-xl transition-colors duration-150;
+}
+
+/* Input estilizado */
+.input-base {
+  @apply w-full bg-surface-elevated border border-surface-border
+         rounded-xl px-4 py-3 text-white placeholder-white/30
+         focus:outline-none focus:border-brand-500
+         transition-colors duration-150 font-body;
+}
+
+/* Badges de estado de la colección */
+.badge-watched  { @apply bg-emerald-500/20 text-emerald-400 text-xs font-semibold px-2 py-0.5 rounded-full; }
+.badge-pending  { @apply bg-amber-500/20  text-amber-400  text-xs font-semibold px-2 py-0.5 rounded-full; }
+.badge-favorite { @apply bg-rose-500/20   text-rose-400   text-xs font-semibold px-2 py-0.5 rounded-full; }

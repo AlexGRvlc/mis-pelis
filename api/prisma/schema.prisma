@@ -1,0 +1,92 @@
+// api/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────
+// ENTIDAD: User
+// Soporta credenciales tradicionales Y login social (OAuth)
+// ─────────────────────────────────────────
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  // Nullable: usuarios con login social no tienen password
+  passwordHash String?
+
+  // OAuth fields — nullable para usuarios con credenciales
+  provider     String?  // "google" | "github" | "credentials"
+  providerId   String?  // ID único del proveedor OAuth
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relación con la colección del usuario
+  collection   Collection[]
+
+  // Índice compuesto para lookup OAuth eficiente
+  @@unique([provider, providerId])
+  @@index([email])
+}
+
+// ─────────────────────────────────────────
+// ENTIDAD: Movie
+// Caché local de datos de TMDb
+// ─────────────────────────────────────────
+model Movie {
+  id         String   @id @default(cuid())
+  tmdbId     Int      @unique  // ID original de TMDb — evita duplicados
+  title      String
+  year       Int?
+  genre      String?  // Almacenado como string serializado, ej: "Acción,Drama"
+  posterUrl  String?
+  overview   String?
+
+  createdAt  DateTime @default(now())
+
+  // Relación inversa con colecciones
+  collection Collection[]
+
+  @@index([tmdbId])
+}
+
+// ─────────────────────────────────────────
+// ENTIDAD: Collection (Tabla Intermedia)
+// Relaciona User <-> Movie con un estado de seguimiento
+// ─────────────────────────────────────────
+model Collection {
+  id        String          @id @default(cuid())
+  status    CollectionStatus
+
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  // Foreign Keys
+  userId    String
+  movieId   String
+
+  // Relaciones
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie           @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  // Un usuario solo puede tener UNA entrada por película
+  @@unique([userId, movieId])
+  @@index([userId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────
+// ENUM: Estados posibles de una película en la colección
+// ─────────────────────────────────────────
+enum CollectionStatus {
+  WATCHED    // Vista
+  PENDING    // Quiero verla
+  FAVORITE   // Favorita
+}

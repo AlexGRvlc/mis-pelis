@@ -1,0 +1,61 @@
+### Configuración de Variables Globales
+@baseUrl = http://localhost:3001/api
+
+### 0. Login Automático para Obtener Token Seguro
+# @name loginAuth
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ada@test.com",
+  "password": "12345678"
+}
+
+### Extraer Token JWT de la Respuesta
+@authToken = {{loginAuth.response.body.token}}
+
+
+### 1. Comprobar si una película está en la colección (Debe dar inCollection: false)
+GET {{baseUrl}}/collection/check/603
+Authorization: Bearer {{authToken}}
+
+
+### 2. Añadir Película a la Colección (Matrix - tmdbId: 603 como PENDING)
+# @name addMovie
+POST {{baseUrl}}/collection
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "tmdbId": 603,
+  "status": "PENDING"
+}
+
+
+### Extraer el ID de la entrada guardada en tu Base de Datos (Neon)
+@entryId = {{addMovie.response.body.entry.id}}
+
+
+### 3. Comprobar de nuevo el estado (Debe dar inCollection: true con los datos de Neon)
+GET {{baseUrl}}/collection/check/603
+Authorization: Bearer {{authToken}}
+
+
+### 4. Cambiar el Estado de la Película (De PENDING a WATCHED)
+PATCH {{baseUrl}}/collection/{{entryId}}
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "status": "WATCHED"
+}
+
+
+### 5. Listar la Colección Completa del Usuario Paginada
+GET {{baseUrl}}/collection?status=WATCHED&page=1
+Authorization: Bearer {{authToken}}
+
+
+### 6. Eliminar la Película de la Colección
+DELETE {{baseUrl}}/collection/{{entryId}}
+Authorization: Bearer {{authToken}}

@@ -1,0 +1,17 @@
+### Configuración de Variables Globales
+@baseUrl = http://localhost:3001/api
+
+### 1. Obtener Películas en Cartelera (Sección Landing)
+GET {{baseUrl}}/movies/now-playing?page=1
+
+### 2. Obtener Novedades en Streaming (Sección Landing)
+GET {{baseUrl}}/movies/streaming?page=1
+
+### 3. Obtener Tendencias de la Semana (Sección Hero)
+GET {{baseUrl}}/movies/trending?window=week
+
+### 4. Buscador Dinámico (Prueba con "Matrix")
+GET {{baseUrl}}/movies/search?q=matrix&page=1
+
+### 5. Detalle de una Película (Usando el ID de Matrix: 603)
+GET {{baseUrl}}/movies/603
