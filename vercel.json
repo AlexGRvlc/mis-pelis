@@ -17,7 +17,9 @@
       "dest": "api/index.js"
     },
     {
-      "handle": "filesystem"
+      "src": "/(.*)",
+      "dest": "client/$1",
+      "check": true
     },
     {
       "src": "/(.*)",
