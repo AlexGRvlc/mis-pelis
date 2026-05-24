@@ -26,16 +26,37 @@ app.use(helmet())
 // ─────────────────────────────────────────
 // 2. CORS — Solo acepta peticiones del frontend
 // ─────────────────────────────────────────
+// const allowedOrigins = [
+//   'http://localhost:5173',                        // Vite dev server local
+//   process.env.FRONTEND_URL,                       // URL de producción en Vercel
+// ].filter(Boolean)                                 // Elimina undefined si la var no está definida
+
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       // Permite llamadas sin origin (Postman, curl, server-to-server)
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         callback(null, true)
+//       } else {
+//         callback(new Error(`CORS bloqueado para el origen: ${origin}`))
+//       }
+//     },
+//     credentials: true,                            // Permite cookies/auth headers
+//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+//   })
+// )
 const allowedOrigins = [
   'http://localhost:5173',                        // Vite dev server local
   process.env.FRONTEND_URL,                       // URL de producción en Vercel
-].filter(Boolean)                                 // Elimina undefined si la var no está definida
+].map(url => url?.replace(/\/$/, ''))             // Limpia barras inclinadas al final por seguridad
+ .filter(Boolean)
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Permite llamadas sin origin (Postman, curl, server-to-server)
-      if (!origin || allowedOrigins.includes(origin)) {
+      // En producción en Vercel, si el origen coincide con el host o está en allowedOrigins, se permite
+      if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
         callback(null, true)
       } else {
         callback(new Error(`CORS bloqueado para el origen: ${origin}`))
@@ -46,6 +67,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 )
+
 
 // ─────────────────────────────────────────
 // 3. RATE LIMITING — Protección global contra abuso
