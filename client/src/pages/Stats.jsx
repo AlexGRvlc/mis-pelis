@@ -70,7 +70,7 @@ export default function Stats() {
   const topFavorite = recent?.find((e) => e.status === 'FAVORITE')
 
   return (
-    <div className="pt-4 nav:pt-0">
+    <div className="pt-4 nav:pt-0 w-full max-w-full overflow-x-hidden px-4">
 
       {/* ── Cabecera ───────────────────────── */}
       <div className="mb-8">
@@ -154,11 +154,11 @@ export default function Stats() {
         {!isLoading && summary?.total > 0 && (
           <div className="bg-surface-card border border-surface-border
                           rounded-2xl p-5 nav:p-6 flex flex-col
-                          justify-between">
+                          justify-between min-w-0">
 
             <h3 className="font-display text-xl text-white
                            tracking-wide mb-4">
-              🏆 HIGHLIGHTS
+              🏆 DESTACADOS
             </h3>
 
             <div className="flex flex-col gap-4">

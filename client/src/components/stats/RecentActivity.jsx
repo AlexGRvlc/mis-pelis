@@ -38,8 +38,9 @@ export default function RecentActivity({ entries = [] }) {
 
           return (
             <div key={entry.id}
-                 className="flex items-center gap-3 py-3
-                             first:pt-0 last:pb-0 group">
+                 className="flex flex-col items-start gap-2 py-4 
+                    nav:flex-row nav:items-center nav:gap-3 nav:py-3
+                    first:pt-0 last:pb-0 group">
 
               {/* Póster miniatura */}
               <div className="w-10 h-14 rounded-lg overflow-hidden
