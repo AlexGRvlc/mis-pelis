@@ -15,6 +15,9 @@ import statsRoutes      from './routes/stats.routes.js'
 
 const app = express()
 
+// ✅ Necesario en Vercel — confía en el proxy de Vercel para IPs reales
+app.set('trust proxy', 1)
+
 // ─────────────────────────────────────────
 // 1. SEGURIDAD — Helmet inyecta cabeceras HTTP seguras
 // ─────────────────────────────────────────
