@@ -154,7 +154,7 @@ export default function Stats() {
         {!isLoading && summary?.total > 0 && (
           <div className="bg-surface-card border border-surface-border
                           rounded-2xl p-5 nav:p-6 flex flex-col
-                          justify-between min-w-0">
+                          justify-between nav:justify-start nav:gap-8 min-w-0">
 
             <h3 className="font-display text-xl text-white
                            tracking-wide mb-4">
