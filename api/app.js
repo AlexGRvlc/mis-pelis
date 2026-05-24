@@ -46,6 +46,8 @@ app.use(helmet())
 //     allowedHeaders: ['Content-Type', 'Authorization'],
 //   })
 // )
+
+// El cambio actual es mucho más robusto y previene de errores de red inesperados
 const allowedOrigins = [
   'http://localhost:5173',                        // Vite dev server local
   process.env.FRONTEND_URL,                       // URL de producción en Vercel

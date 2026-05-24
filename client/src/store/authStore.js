@@ -17,7 +17,6 @@ export const useAuthStore = create(
 
       clearAuth: () => {
         set({ token: null, user: null, isAuthenticated: false })
-        localStorage.removeItem('mpelis_token')
       },
 
       updateUser: (updatedUser) => {
