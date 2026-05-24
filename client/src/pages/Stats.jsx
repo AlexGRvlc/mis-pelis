@@ -120,7 +120,7 @@ export default function Stats() {
       </div>
 
       {/* ── Gráficos ───────────────────────── */}
-      <div className="grid nav:grid-cols-2 gap-4 mb-6">
+      <div className="flex flex-col nav:grid nav:grid-cols-2 gap-4 mb-6">
         {isLoading ? (
           <>
             <ChartSkeleton />

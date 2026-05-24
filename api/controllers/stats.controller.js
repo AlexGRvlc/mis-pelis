@@ -208,7 +208,13 @@ export const getOverview = async (req, res) => {
         },
         select: {
           movie: {
-            select: { year: true, genre: true },
+            select: { 
+              tmdbId:    true, // 👈 Añadido: Clave única necesaria para React
+              title:     true, // 👈 Añadido: Nombre de la película para el listado
+              posterUrl: true, // 👈 Añadido: Imagen del póster para el carrusel
+              year:      true, 
+              genre:     true 
+             },
           },
         },
       }),
@@ -238,15 +244,33 @@ export const getOverview = async (req, res) => {
       summary.total  += _count.status
     })
 
-    // ── Procesar byYear ───────────────────
+        // ── Procesar byYear (Versión Interactiva Pro) ───────────────────
     const yearMap = {}
+    
     watchedEntries.forEach(({ movie }) => {
       if (!movie.year) return
-      yearMap[movie.year] = (yearMap[movie.year] || 0) + 1
+      
+      // Si es la primera película que encontramos de este año, inicializamos su objeto
+      if (!yearMap[movie.year]) {
+        yearMap[movie.year] = {
+          year: Number(movie.year),
+          count: 0,
+          movies: [] // 🌟 Aquí guardaremos la lista de películas de este año
+        }
+      }
+      
+      // Incrementamos el contador e inyectamos los datos de la película de forma segura
+      yearMap[movie.year].count += 1
+      yearMap[movie.year].movies.push({
+        tmdbId:    movie.tmdbId,
+        title:     movie.title,
+        posterUrl: movie.posterUrl
+      })
     })
-    const byYear = Object.entries(yearMap)
-      .map(([year, count]) => ({ year: Number(year), count }))
-      .sort((a, b) => a.year - b.year)
+
+    // Convertimos el mapa de años en un array plano y lo ordenamos cronológicamente
+    const byYear = Object.values(yearMap).sort((a, b) => a.year - b.year)
+
 
     // ── Procesar topGenres ────────────────
     const genreMap = {}
