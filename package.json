@@ -1,12 +1,11 @@
 {
-  "name": "mis-pelis",
+  "name": "mis-pelis-monorepo",
   "version": "1.0.0",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "cd client && npm install && npm run build",
+    "vercel-build": "cd api && npm install && npx prisma generate && cd ../client && npm install && npm run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "engines": {
+    "node": ">=20.x"
+  }
 }
