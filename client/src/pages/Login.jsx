@@ -3,6 +3,7 @@
 // import { useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useLoginForm } from '../hooks/useLoginForm.js'
+import { useGoogleAuth }  from '../hooks/useGoogleAuth.js'   // este hook maneja la lógica de login con Google OAuth, incluyendo la llamada a socialLogin() del contexto AuthContext
 // import { useAuth } from '../context/AuthContext.jsx'
 import FormField from '../components/ui/FormField.jsx'
 import Spinner   from '../components/ui/Spinner.jsx'
@@ -63,13 +64,14 @@ export default function Login() {
   // En producción integrarías Google OAuth SDK / GitHub OAuth App.
   // Este handler muestra la estructura correcta para cuando lo conectes.
   const handleSocialLogin = async (provider) => {
-    toast(
-      `Integración con ${provider} lista para conectar.\nImplementa el SDK OAuth y llama a socialLogin({ name, email, provider, providerId }).`,
-      { icon: 'ℹ️', duration: 5000 }
-    )
-    // Ejemplo de llamada cuando tengas el token del proveedor:
-    // await socialLogin({ name, email, provider: 'google', providerId: googleId })
-  }
+     toast(
+       `Integración con ${provider} lista para conectar.\nImplementa el SDK OAuth y llama a socialLogin({ name, email, provider, providerId }).`,
+       { icon: 'ℹ️', duration: 5000 }
+     )
+   }
+
+    
+const { loginWithGoogle } = useGoogleAuth()
 
   return (
     <div className="min-h-screen bg-surface flex">
@@ -152,7 +154,7 @@ export default function Login() {
               provider="google"
               icon={<GoogleIcon />}
               label="Continuar con Google"
-              onClick={() => handleSocialLogin('Google')}
+              onClick={() =>  loginWithGoogle()}
               disabled={loading}
             />
             <SocialButton
