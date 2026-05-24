@@ -186,11 +186,12 @@ export default function Search() {
       )}
 
       {/* Estado: resultados */}
-      {hasQuery && hasResults && (
-        <>
+      {hasQuery && hasResults && (        
+        <div className="mt-8 px-4 sm:px-6 nav:px-0 flex flex-col gap-8">
           <MovieGrid
             movies={data.results}
             loading={isLoading}
+                  cols={2} // 👈 ¡Fuerza 2 columnas perfectas con aire e impacto visual solo aquí!
           />
 
           {/* Paginación */}
@@ -250,7 +251,7 @@ export default function Search() {
           <p className="text-center text-white/20 text-xs font-body pb-4">
             Página {page} de {data.totalPages}
           </p>
-        </>
+        </div>
       )}
 
     </div>
