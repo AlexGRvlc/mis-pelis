@@ -1,15 +1,14 @@
-// client/src/hooks/useLoginForm.js
-
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import { useAuthStore } from '../store/authStore.js' // 👈 Cambiamos Context por tu Store de Zustand
+import api from '../services/api.js' // 👈 Importamos tu cliente Axios configurado
 import toast from 'react-hot-toast'
 
 const INITIAL_LOGIN    = { email: '', password: '' }
 const INITIAL_REGISTER = { name: '', email: '', password: '', confirm: '' }
 
 export const useLoginForm = (initialMode = 'login') => {
-  const { login, register } = useAuth()
+  const setAuth             = useAuthStore((state) => state.setAuth) // 🧠 Traemos la acción de Zustand
   const navigate            = useNavigate()
 
   const [mode,    setMode]    = useState(initialMode)
@@ -23,7 +22,6 @@ export const useLoginForm = (initialMode = 'login') => {
   const handleChange = useCallback((e) => {
     const { name, value } = e.target
     setFields((prev) => ({ ...prev, [name]: value }))
-    // Limpiar error del campo al escribir
     setErrors((prev) => ({ ...prev, [name]: null }))
   }, [])
 
@@ -73,12 +71,24 @@ export const useLoginForm = (initialMode = 'login') => {
     }
 
     setLoading(true)
+    
+    // 🧠 LIMPIEZA CRÍTICA PARA MÓVILES: Evita mayúsculas automáticas y espacios del teclado
+    const cleanEmail = fields.email.trim().toLowerCase()
+    const cleanPassword = fields.password.trim()
+
     try {
       if (mode === 'login') {
-        await login({ email: fields.email, password: fields.password })
+        // Ejecutamos la petición directa con Axios
+        const response = await api.post('/auth/login', { email: cleanEmail, password: cleanPassword })
+        
+        // Guardamos los datos de la respuesta en tu Zustand validado
+        setAuth(response.data.token, response.data.user)
         toast.success('¡Bienvenido de nuevo!')
       } else {
-        await register({ name: fields.name, email: fields.email, password: fields.password })
+        const cleanName = fields.name.trim()
+        const response = await api.post('/auth/register', { name: cleanName, email: cleanEmail, password: cleanPassword })
+        
+        setAuth(response.data.token, response.data.user)
         toast.success('¡Cuenta creada! Bienvenido a Mis Pelis.')
       }
       navigate('/')
@@ -86,14 +96,13 @@ export const useLoginForm = (initialMode = 'login') => {
       const message = err.response?.data?.message || 'Ha ocurrido un error. Inténtalo de nuevo.'
       toast.error(message)
 
-      // Si el error viene del servidor con campo específico, mostrarlo inline
       if (err.response?.status === 409) {
         setErrors({ email: 'Ya existe una cuenta con ese email.' })
       }
     } finally {
       setLoading(false)
     }
-  }, [mode, fields, validate, login, register, navigate])
+  }, [mode, fields, validate, setAuth, navigate])
 
   return {
     mode,
