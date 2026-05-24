@@ -1,5 +1,4 @@
 // api/controllers/stats.controller.js
-
 import prisma from '../lib/prismaClient.js'
 
 // ─────────────────────────────────────────
@@ -27,15 +26,15 @@ export const getSummary = async (req, res) => {
 
     // Construir objeto con valores por defecto en 0
     const summary = {
-      WATCHED:  0,
-      PENDING:  0,
+      WATCHED: 0,
+      PENDING: 0,
       FAVORITE: 0,
-      total:    0,
+      total: 0,
     }
 
     grouped.forEach(({ status, _count }) => {
       summary[status] = _count.status
-      summary.total  += _count.status
+      summary.total += _count.status
     })
 
     return res.status(200).json({
@@ -45,7 +44,7 @@ export const getSummary = async (req, res) => {
   } catch (err) {
     console.error('Error en getSummary:', err)
     return res.status(500).json({
-      status:  'error',
+      status: 'error',
       message: 'Error al obtener el resumen.',
     })
   }
@@ -73,7 +72,6 @@ export const getByYear = async (req, res) => {
 
     // Agregar en memoria — más flexible que un groupBy con JOIN
     const yearMap = {}
-
     entries.forEach(({ movie }) => {
       if (!movie.year) return
       yearMap[movie.year] = (yearMap[movie.year] || 0) + 1
@@ -91,7 +89,7 @@ export const getByYear = async (req, res) => {
   } catch (err) {
     console.error('Error en getByYear:', err)
     return res.status(500).json({
-      status:  'error',
+      status: 'error',
       message: 'Error al obtener estadísticas por año.',
     })
   }
@@ -118,7 +116,6 @@ export const getTopGenres = async (req, res) => {
 
     // Contar frecuencia de cada género
     const genreMap = {}
-
     entries.forEach(({ movie }) => {
       const genres = parseGenres(movie.genre)
       genres.forEach((genre) => {
@@ -139,7 +136,7 @@ export const getTopGenres = async (req, res) => {
   } catch (err) {
     console.error('Error en getTopGenres:', err)
     return res.status(500).json({
-      status:  'error',
+      status: 'error',
       message: 'Error al obtener géneros.',
     })
   }
@@ -157,11 +154,11 @@ export const getRecent = async (req, res) => {
       include: {
         movie: {
           select: {
-            tmdbId:    true,
-            title:     true,
-            year:      true,
+            tmdbId: true,
+            title: true,
+            year: true,
             posterUrl: true,
-            genre:     true,
+            genre: true,
           },
         },
       },
@@ -176,7 +173,7 @@ export const getRecent = async (req, res) => {
   } catch (err) {
     console.error('Error en getRecent:', err)
     return res.status(500).json({
-      status:  'error',
+      status: 'error',
       message: 'Error al obtener actividad reciente.',
     })
   }
@@ -185,22 +182,20 @@ export const getRecent = async (req, res) => {
 // ─────────────────────────────────────────
 // GET /api/stats/overview
 // Endpoint único que agrega TODOS los datos anteriores
-// en una sola llamada — optimizado para el dashboard
-// Evita que el frontend haga 4 peticiones separadas
 // ─────────────────────────────────────────
 export const getOverview = async (req, res) => {
   try {
-    // Ejecutar las 4 consultas en paralelo
-    const [grouped, watchedEntries, recentEntries] = await Promise.all([
-
-      // 1. Conteos por estado
+    // 🧠 Ejecutar las 4 consultas en paralelo (🌟 Añadido el punto de favoritos aquí)
+    const [grouped, watchedEntries, recentEntries, favoriteEntry] = await Promise.all([
+      
+      // 1. Conteos por estado (Página 4)
       prisma.collection.groupBy({
         by: ['status'],
         where: { userId: req.user.id },
         _count: { status: true },
       }),
 
-      // 2. Entradas vistas con año y género para agregar
+      // 2. Entradas vistas con año y género para agregar (Página 4-5)
       prisma.collection.findMany({
         where: {
           userId: req.user.id,
@@ -209,25 +204,25 @@ export const getOverview = async (req, res) => {
         select: {
           movie: {
             select: { 
-              tmdbId:    true, // 👈 Añadido: Clave única necesaria para React
-              title:     true, // 👈 Añadido: Nombre de la película para el listado
-              posterUrl: true, // 👈 Añadido: Imagen del póster para el carrusel
-              year:      true, 
-              genre:     true 
-             },
+              tmdbId: true,
+              title: true,
+              posterUrl: true,
+              year: true, 
+              genre: true
+            },
           },
         },
       }),
 
-      // 3. Actividad reciente
+      // 3. Actividad reciente (Página 5)
       prisma.collection.findMany({
         where: { userId: req.user.id },
         include: {
           movie: {
             select: {
-              tmdbId:    true,
-              title:     true,
-              year:      true,
+              tmdbId: true,
+              title: true,
+              year: true,
               posterUrl: true,
             },
           },
@@ -235,42 +230,55 @@ export const getOverview = async (req, res) => {
         orderBy: { updatedAt: 'desc' },
         take: 10,
       }),
+
+      // 🌟 CAMBIO 1: Buscamos la película favorita más recientemente modificada
+      prisma.collection.findFirst({
+        where: {
+          userId: req.user.id,
+          status: 'FAVORITE',
+        },
+        include: {
+          movie: {
+            select: {
+              tmdbId: true,
+              title: true,
+              posterUrl: true,
+            },
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+      }),
     ])
 
     // ── Procesar summary ──────────────────
     const summary = { WATCHED: 0, PENDING: 0, FAVORITE: 0, total: 0 }
     grouped.forEach(({ status, _count }) => {
       summary[status] = _count.status
-      summary.total  += _count.status
+      summary.total += _count.status
     })
 
-        // ── Procesar byYear (Versión Interactiva Pro) ───────────────────
+    // ── Procesar byYear (Versión Interactiva Pro) ───────────────────
     const yearMap = {}
-    
     watchedEntries.forEach(({ movie }) => {
       if (!movie.year) return
       
-      // Si es la primera película que encontramos de este año, inicializamos su objeto
       if (!yearMap[movie.year]) {
         yearMap[movie.year] = {
           year: Number(movie.year),
           count: 0,
-          movies: [] // 🌟 Aquí guardaremos la lista de películas de este año
+          movies: []
         }
       }
       
-      // Incrementamos el contador e inyectamos los datos de la película de forma segura
       yearMap[movie.year].count += 1
       yearMap[movie.year].movies.push({
-        tmdbId:    movie.tmdbId,
-        title:     movie.title,
+        tmdbId: movie.tmdbId,
+        title: movie.title,
         posterUrl: movie.posterUrl
       })
     })
 
-    // Convertimos el mapa de años en un array plano y lo ordenamos cronológicamente
     const byYear = Object.values(yearMap).sort((a, b) => a.year - b.year)
-
 
     // ── Procesar topGenres ────────────────
     const genreMap = {}
@@ -279,11 +287,13 @@ export const getOverview = async (req, res) => {
         genreMap[genre] = (genreMap[genre] || 0) + 1
       })
     })
+    
     const topGenres = Object.entries(genreMap)
       .map(([genre, count]) => ({ genre, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10)
 
+    // Retornamos el objeto unificado hacia el frontend
     return res.status(200).json({
       status: 'success',
       overview: {
@@ -291,12 +301,13 @@ export const getOverview = async (req, res) => {
         byYear,
         topGenres,
         recent: recentEntries,
+        topFavorite: favoriteEntry, // 🌟 CAMBIO 2: Inyectamos el favorito real para revivir la tarjeta
       },
     })
   } catch (err) {
     console.error('Error en getOverview:', err)
     return res.status(500).json({
-      status:  'error',
+      status: 'error',
       message: 'Error al obtener el overview.',
     })
   }

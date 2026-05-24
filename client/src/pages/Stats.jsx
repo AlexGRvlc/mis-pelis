@@ -64,10 +64,38 @@ export default function Stats() {
     )
   }
 
-  const { summary, byYear, topGenres, recent } = overview || {}
+  const { summary, byYear, topGenres, recent, topFavorite } = overview || {}
+
+    // ── 🧠 Lógica elástica de Niveles Cinéfilos (Paso 1) ────────────────
+  const watchedCount = summary?.WATCHED || 0
+
+  let rangeName = 'Espectador Casual'
+  let minMovies = 0
+  let maxMovies = 10
+
+  if (watchedCount > 10 && watchedCount <= 30) {
+    rangeName = 'Aficionado'
+    minMovies = 10
+    maxMovies = 30
+  } else if (watchedCount > 30 && watchedCount <= 70) {
+    rangeName = 'Amante del Cine'
+    minMovies = 30
+    maxMovies = 70
+  } else if (watchedCount > 70) {
+    rangeName = 'Crítico Experto'
+    minMovies = 70
+    maxMovies = Number.MAX_SAFE_INTEGER
+  }
+
+  // La barra vuelve a nacer desde cero en cada umbral de rango
+  const moviesInThisLevel = watchedCount - minMovies
+  const totalNeededInThisLevel = maxMovies - minMovies
+  const levelProgressPct = maxMovies === Number.MAX_SAFE_INTEGER 
+    ? 100 
+    : Math.min(Math.round((moviesInThisLevel / totalNeededInThisLevel) * 100), 100)
+
 
   // ── Película favorita — la más reciente con estado FAVORITE
-  const topFavorite = recent?.find((e) => e.status === 'FAVORITE')
 
   return (
     <div className="pt-4 nav:pt-0 w-full max-w-full overflow-x-hidden px-4">
@@ -163,43 +191,54 @@ export default function Stats() {
 
             <div className="flex flex-col gap-4">
 
-              {/* Ratio completadas */}
-              <div>
+             
+              {/* Ratio de Progreso Gamificado por Niveles */}
+                <div>
                 <div className="flex justify-between items-baseline mb-2">
-                  <span className="font-body text-sm text-white/50">
-                    Completadas
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="font-body text-xs text-white/40 uppercase tracking-wider">
+                      Progreso de Nivel
+                    </span>
+                    <span className="font-body text-sm text-white/70 font-medium mt-0.5">
+                      Rango actual: <span className="text-brand-400 font-semibold">{rangeName}</span>
+                    </span>
+                  </div>
                   <span className="font-display text-2xl text-brand-400">
-                    {Math.round((summary.WATCHED / summary.total) * 100)}%
+                    {levelProgressPct}%
                   </span>
                 </div>
+                
                 <div className="w-full bg-surface-elevated rounded-full h-2">
                   <div
-                    className="bg-brand-500 h-2 rounded-full transition-all duration-700"
-                    style={{
-                      width: `${Math.round((summary.WATCHED / summary.total) * 100)}%`
-                    }}
+                    className="bg-brand-500 h-2 rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(249,115,22,0.3)]"
+                    style={{ width: `${levelProgressPct}%` }}
                   />
                 </div>
+                
+                {maxMovies !== Number.MAX_SAFE_INTEGER && (
+                  <p className="text-[11px] text-white/20 font-body mt-1.5 text-right">
+                    Te faltan {maxMovies - watchedCount} pelis para el próximo nivel
+                  </p>
+                )}
               </div>
+
 
               {/* Género número 1 */}
               {topGenres?.[0] && (
-                <div className="flex items-center justify-between
-                                bg-surface-elevated rounded-xl p-3">
-                  <div>
-                    <p className="text-white/40 text-xs font-body">
-                      Género favorito
-                    </p>
-                    <p className="text-white font-body font-semibold text-sm mt-0.5">
-                      {topGenres[0].genre}
-                    </p>
-                  </div>
-                  <span className="font-display text-3xl text-brand-500">
-                    #{topGenres[0].count}
-                  </span>
-                </div>
-              )}
+          <div className="flex items-center justify-between bg-surface-elevated rounded-xl p-3">
+            <div>
+              <p className="text-white/40 text-xs font-body">
+                Género favorito
+              </p>
+              <p className="text-white font-body font-semibold text-sm mt-0.5">
+                {topGenres[0].genre}
+              </p>
+            </div>
+            <span className="font-display text-3xl text-brand-500">
+              #{topGenres[0].count}
+            </span>
+          </div>
+        )}
 
               {/* Favorita más reciente */}
               {topFavorite && (
