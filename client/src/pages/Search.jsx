@@ -101,8 +101,7 @@ export default function Search() {
                 setPage(1)           // reset aquí, sin useEffect
                 }}
             placeholder="Busca una película…"
-            className="input-base pl-12 pr-12 py-4 text-base
-                       rounded-2xl nav:text-lg"
+            className="input-base !pl-12 !pr-12 py-4 text-base rounded-2xl nav:text-lg"
             autoComplete="off"
             autoCorrect="off"
             spellCheck="false"
