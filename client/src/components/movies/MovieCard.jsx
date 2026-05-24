@@ -1,7 +1,7 @@
 // client/src/components/movies/MovieCard.jsx
 
 import { useState } from 'react'
-// import { useAuth } from '../../context/AuthContext.jsx'
+import { useNavigate } from 'react-router-dom'
 import { useGuestGuard } from '../../hooks/useGuestGuard.js'
 import { collectionService } from '../../services/collection.service.js'
 import { useQueryClient } from '@tanstack/react-query'
@@ -9,12 +9,11 @@ import GuestModal from '../ui/GuestModal.jsx'
 import toast from 'react-hot-toast'
 
 const STATUS_OPTIONS = [
-  { value: 'WATCHED',  label: '✅ Vista',          className: 'badge-watched'  },
-  { value: 'PENDING',  label: '🕐 Quiero verla',   className: 'badge-pending'  },
-  { value: 'FAVORITE', label: '❤️ Favorita',        className: 'badge-favorite' },
+  { value: 'WATCHED',  label: '✅ Vista',        className: 'badge-watched'  },
+  { value: 'PENDING',  label: '🕐 Quiero verla', className: 'badge-pending'  },
+  { value: 'FAVORITE', label: '❤️ Favorita',      className: 'badge-favorite' },
 ]
 
-// ── Placeholder cuando no hay póster ─────
 const PosterFallback = ({ title }) => (
   <div className="w-full h-full bg-surface-elevated flex flex-col
                   items-center justify-center gap-2 p-3">
@@ -26,18 +25,18 @@ const PosterFallback = ({ title }) => (
 )
 
 export default function MovieCard({ movie, size = 'md' }) {
-//   const { isAuthenticated } = useAuth()
+  const navigate    = useNavigate()
   const { guardAction, GuestModalProps } = useGuestGuard()
   const queryClient = useQueryClient()
 
-  const [menuOpen,   setMenuOpen]   = useState(false)
-  const [loading,    setLoading]    = useState(false)
-  const [entryStatus, setEntryStatus] = useState(null) // estado local optimista
+  const [menuOpen,    setMenuOpen]    = useState(false)
+  const [loading,     setLoading]     = useState(false)
+  const [entryStatus, setEntryStatus] = useState(null)
 
   const sizes = {
-    sm: 'w-28  flex-none',
-    md: 'w-36  flex-none',
-    lg: 'w-44  flex-none',
+    sm: 'w-28 flex-none',
+    md: 'w-36 flex-none',
+    lg: 'w-44 flex-none',
   }
 
   const posterHeights = {
@@ -49,17 +48,14 @@ export default function MovieCard({ movie, size = 'md' }) {
   const handleStatusSelect = async (status) => {
     setMenuOpen(false)
     setLoading(true)
-
     try {
       await collectionService.add(movie.tmdbId, status)
       setEntryStatus(status)
       toast.success(`"${movie.title}" añadida como ${
         STATUS_OPTIONS.find(o => o.value === status)?.label
       }`)
-      // Invalidar la colección para que se refresque si está abierta
       queryClient.invalidateQueries({ queryKey: ['collection'] })
     } catch (err) {
-      // Si ya está en la colección (409), informar amigablemente
       if (err.response?.status === 409) {
         toast('Esta película ya está en tu colección.', { icon: 'ℹ️' })
       } else {
@@ -76,8 +72,11 @@ export default function MovieCard({ movie, size = 'md' }) {
     <>
       <div className={`movie-card group ${sizes[size]}`}>
 
-        {/* Póster */}
-        <div className={`relative ${posterHeights[size]} bg-surface-card`}>
+        {/* Póster — clickable al detalle */}
+        <div
+          className={`relative ${posterHeights[size]} bg-surface-card cursor-pointer`}
+          onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+        >
           {movie.posterUrl ? (
             <img
               src={movie.posterUrl}
@@ -93,7 +92,7 @@ export default function MovieCard({ movie, size = 'md' }) {
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50
                           transition-colors duration-200" />
 
-          {/* Badge de estado — si ya fue añadida */}
+          {/* Badge de estado */}
           {currentBadge && (
             <div className="absolute top-2 left-2">
               <span className={currentBadge.className}>
@@ -104,9 +103,13 @@ export default function MovieCard({ movie, size = 'md' }) {
 
           {/* Botón añadir — aparece en hover */}
           <div className="absolute inset-0 flex items-center justify-center
-                          opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          opacity-0 group-hover:opacity-100
+                          transition-opacity duration-200">
             <button
-              onClick={() => guardAction(() => setMenuOpen(true), 'añadir películas a tu colección')}
+              onClick={(e) => {
+                e.stopPropagation()
+                guardAction(() => setMenuOpen(true), 'añadir películas a tu colección')
+              }}
               disabled={loading}
               className="bg-brand-500 hover:bg-brand-600 text-white
                          rounded-full p-3 shadow-lg transition-all duration-150
@@ -116,14 +119,15 @@ export default function MovieCard({ movie, size = 'md' }) {
               {loading ? (
                 <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
                   <circle className="opacity-25" cx="12" cy="12" r="10"
-                          stroke="currentColor" strokeWidth="4"/>
+                          stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
                 </svg>
               ) : (
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M12 4v16m8-8H4" />
                 </svg>
               )}
             </button>
@@ -131,8 +135,11 @@ export default function MovieCard({ movie, size = 'md' }) {
 
           {/* Menú de estado */}
           {menuOpen && (
-            <div className="absolute inset-0 bg-black/90 flex flex-col
-                            items-stretch justify-center gap-2 p-3 z-10">
+            <div
+              className="absolute inset-0 bg-black/90 flex flex-col
+                         items-stretch justify-center gap-2 p-3 z-10"
+              onClick={(e) => e.stopPropagation()}
+            >
               <p className="text-white/50 text-xs text-center font-body mb-1">
                 Añadir como…
               </p>
@@ -158,10 +165,14 @@ export default function MovieCard({ movie, size = 'md' }) {
           )}
         </div>
 
-        {/* Info */}
-        <div className="p-2">
+        {/* Info — también clickable */}
+        <div
+          className="p-2 cursor-pointer"
+          onClick={() => navigate(`/movie/${movie.tmdbId}`)}
+        >
           <p className="text-white text-xs font-body font-medium
-                        leading-tight line-clamp-2">
+                        leading-tight line-clamp-2 group-hover:text-brand-400
+                        transition-colors">
             {movie.title}
           </p>
           {movie.year && (
@@ -176,4 +187,4 @@ export default function MovieCard({ movie, size = 'md' }) {
       <GuestModal {...GuestModalProps} />
     </>
   )
-}   
+}

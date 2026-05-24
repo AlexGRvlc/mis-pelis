@@ -12,6 +12,7 @@ import Search     from './pages/Search.jsx'
 import Collection from './pages/Collection.jsx'
 import Stats      from './pages/Stats.jsx'
 import Login      from './pages/Login.jsx'
+import MovieDetail from './pages/MovieDetail.jsx'
 
 // ── Guardia de ruta autenticada ───────────
 const ProtectedRoute = ({ children }) => {
@@ -42,6 +43,7 @@ export default function App() {
         {/* Públicas — invitado puede navegar */}
         <Route path="/"       element={<Home />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/movie/:tmdbId" element={<MovieDetail />} />
 
         {/* Protegidas — requieren autenticación */}
         <Route path="/collection" element={
