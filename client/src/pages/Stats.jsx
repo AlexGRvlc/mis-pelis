@@ -129,7 +129,7 @@ export default function Stats() {
               value={summary?.WATCHED ?? 0}
               sublabel={
                 summary?.total > 0
-                  ? `${Math.round((summary.WATCHED / summary.total) * 100)}% del total`
+                  ? `Rango: ${rangeName}`
                   : null
               }
             />
